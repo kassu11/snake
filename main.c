@@ -27,15 +27,23 @@ int main() {
     lastChar = getch_noblock();
     if (lastChar == 224) { // Arrow key was used
       lastChar = getch_noblock();
-      if (lastChar == 75) { // Left
+      if (lastChar == 75) { // Left arrow
         px -= 1;
-      } else if (lastChar == 77) { // Right
+      } else if (lastChar == 77) { // Right arrow
         px += 1;
-      } else if (lastChar == 72) { // Up
+      } else if (lastChar == 72) { // Up arrow
         py -= 1;
-      } else if (lastChar == 80) { // Down
+      } else if (lastChar == 80) { // Down arrow
         py += 1;
       }
+    } else if (lastChar == 97) { // A
+      px -= 1;
+    } else if (lastChar == 100) { // D
+      px += 1;
+    } else if (lastChar == 119) { // W
+      py -= 1;
+    } else if (lastChar == 115) { // S
+      py += 1;
     }
 
     // Render map
@@ -55,5 +63,8 @@ int main() {
 
     // Move caret to top and print everything at once
     printf("\e[H%s", map);
+
+    // lastChar = _getch();
+    // printf("%d\n", lastChar);
   }
 }
