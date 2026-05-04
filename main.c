@@ -18,9 +18,14 @@ int main() {
   int width = 30, height = 10;
   char map[width * height + 1];
 
-  clear();
+  int x, y;
 
-  int px = 0, py = 0;
+  // Move cursor down by height
+  for (int y = 0; y < height + 1; y++) {
+    printf("\n");
+  }
+
+  int px = 2, py = 2;
 
   while (lastChar != 3) { // Escape when user presses ctrl+c
     // Handle player movement
@@ -61,8 +66,8 @@ int main() {
     }
     map[height * width] = '\0';
 
-    // Move caret to top and print everything at once
-    printf("\e[H%s", map);
+    // Move cursor up by height, and print map
+    printf("\e[%dA%s", height, map);
 
     // lastChar = _getch();
     // printf("%d\n", lastChar);
