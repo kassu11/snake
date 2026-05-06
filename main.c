@@ -13,17 +13,30 @@ int getch_noblock() {
 
 enum Direction { RIGHT, LEFT, DOWN, UP };
 
-int main() {
-  int lastChar = 0;
-  int width = 30, height = 10;
+void drawEmptyMap(int width, int height) {
+  width += 1;
   char map[width * height + 1];
 
-  int x, y;
-
-  // Move cursor down by height
-  for (int y = 0; y < height + 1; y++) {
-    printf("\n");
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width - 1; x++) {
+      if (x == 0 || x == width - 2 || y == 0 || y == height - 1) {
+        map[y * width + x] = '0';
+      } else {
+        map[y * width + x] = '.';
+      }
+    }
+    map[y * width + width - 1] = '\n';
   }
+  map[height * width] = '\0';
+
+  printf("%s", map);
+}
+
+int main() {
+  int lastChar = 0;
+  int width = 10, height = 10;
+
+  drawEmptyMap(width, height);
 
   int px = 2, py = 2;
 
@@ -33,43 +46,31 @@ int main() {
     if (lastChar == 224) { // Arrow key was used
       lastChar = getch_noblock();
       if (lastChar == 75) { // Left arrow
-        px -= 1;
+        px = (px + width - 3) % (width - 2);
       } else if (lastChar == 77) { // Right arrow
-        px += 1;
+        px = (px + 1) % (width - 2);
       } else if (lastChar == 72) { // Up arrow
-        py -= 1;
+        py = (py + height - 3) % (height - 2);
       } else if (lastChar == 80) { // Down arrow
-        py += 1;
+        py = (py + 1) % (height - 2);
       }
     } else if (lastChar == 97) { // A
-      px -= 1;
+      px = (px + width - 3) % (width - 2);
     } else if (lastChar == 100) { // D
-      px += 1;
+      px = (px + 1) % (width - 2);
     } else if (lastChar == 119) { // W
-      py -= 1;
+      py = (py + height - 3) % (height - 2);
     } else if (lastChar == 115) { // S
-      py += 1;
+      py = (py + 1) % (height - 2);
     }
 
-    // Render map
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width - 1; x++) {
-        if (px == x && py == y) {
-          map[y * width + x] = '#';
-        } else if (x == 0 || x == width - 2 || y == 0 || y == height - 1) {
-          map[y * width + x] = '0';
-        } else {
-          map[y * width + x] = '.';
-        }
-      }
-      map[y * width + width - 1] = '\n';
-    }
-    map[height * width] = '\0';
+    px += 1;
+    py += 1;
 
-    // Move cursor up by height, and print map
-    printf("\e[%dA%s", height, map);
+    // Move top, right print, left + 1, down
+    printf("\e[%dA\e[%dC#\e[%dD\e[%dB", height - py, px, px + 1, height - py);
 
-    // lastChar = _getch();
-    // printf("%d\n", lastChar);
+    px -= 1;
+    py -= 1;
   }
 }
