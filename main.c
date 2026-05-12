@@ -4,6 +4,14 @@
 #define clear() printf("\033[H\033[J")
 #define gotoxy(x, y) printf("\033[%d;%dH", (y), (x))
 
+#ifdef _WIN32
+#include <windows.h>
+#define delay(ms) Sleep(ms)
+#else
+#include <unistd.h>
+#define delay(ms) usleep((ms) * 1000)
+#endif
+
 int getch_noblock() {
   if (_kbhit())
     return _getch();
@@ -32,45 +40,54 @@ void drawEmptyMap(int width, int height) {
   printf("%s", map);
 }
 
+void set(int *values, int value, int length, int *head, int *tail) {
+  *head = (*head + 1) % length;
+  *tail = (*tail + 1) % length;
+  values[*head] = value;
+}
+
+void add(int *values, int value, int length, int *head, int *tail) {
+  *head = (*head + 1) % length;
+  values[*head] = value;
+}
+
 int main() {
   int lastChar = 0;
-  int width = 10, height = 10;
+  int width = 30, height = 10;
+  int length = width * height;
 
   drawEmptyMap(width, height);
+
+  int snake[length];
+  int head = 0;
+  int tail = 0;
+  for (int i = 0; i < length; i++) {
+    snake[i] = 0;
+  }
 
   int px = 2, py = 2;
 
   while (lastChar != 3) { // Escape when user presses ctrl+c
-    // Handle player movement
-    lastChar = getch_noblock();
-    if (lastChar == 224) { // Arrow key was used
-      lastChar = getch_noblock();
-      if (lastChar == 75) { // Left arrow
-        px = (px + width - 3) % (width - 2);
-      } else if (lastChar == 77) { // Right arrow
-        px = (px + 1) % (width - 2);
-      } else if (lastChar == 72) { // Up arrow
-        py = (py + height - 3) % (height - 2);
-      } else if (lastChar == 80) { // Down arrow
-        py = (py + 1) % (height - 2);
-      }
-    } else if (lastChar == 97) { // A
-      px = (px + width - 3) % (width - 2);
-    } else if (lastChar == 100) { // D
-      px = (px + 1) % (width - 2);
-    } else if (lastChar == 119) { // W
-      py = (py + height - 3) % (height - 2);
-    } else if (lastChar == 115) { // S
-      py = (py + 1) % (height - 2);
-    }
+    lastChar = _getch();
+    // Arrow key was used
+    if (lastChar == 224) lastChar += getch_noblock();
 
-    px += 1;
-    py += 1;
+    if (lastChar == 97 || lastChar == 224 + 75) px = (px + width - 3) % (width - 2); // A or Left arrow
+    else if (lastChar == 100 || lastChar == 224 + 77) px = (px + 1) % (width - 2); // D or Right arrow
+    else if (lastChar == 119 || lastChar == 224 + 72) py = (py + height - 3) % (height - 2); // W or Up arrow
+    else if (lastChar == 115 || lastChar == 224 + 80) py = (py + 1) % (height - 2); // S or Down arrow
 
     // Move top, right print, left + 1, down
-    printf("\e[%dA\e[%dC#\e[%dD\e[%dB", height - py, px, px + 1, height - py);
+    printf("\e[%dA\e[%dC#\e[%dD\e[%dB", height - py - 1, px + 1, px + 2, height - py - 1);
 
-    px -= 1;
-    py -= 1;
+    if (head - tail < 15 && head - tail >= 0) {
+      add(snake, py * width + px, length, &head, &tail);
+    } else {
+      set(snake, py * width + px, length, &head, &tail);
+      int y = snake[tail] / width;
+      int x = snake[tail] - y * width;
+      // Move top, right print, left + 1, down
+      printf("\e[%dA\e[%dC.\e[%dD\e[%dB", height - y - 1, x + 1, x + 2, height - y - 1);
+    }
   }
 }
