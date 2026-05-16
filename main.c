@@ -1,9 +1,6 @@
 #include <conio.h>
 #include <stdio.h>
 
-#define clear() printf("\033[H\033[J")
-#define gotoxy(x, y) printf("\033[%d;%dH", (y), (x))
-
 #ifdef _WIN32
 #include <windows.h>
 #define delay(ms) Sleep(ms)
@@ -54,23 +51,13 @@ int main() {
   int size = 1;
 
   system("chcp 65001");
-  printf("╭────╮\n│    │\n╰─●─╸╯\n");
-  printf("╭────╮\n│    │\n╰─●╶─╯\n");
-  // printf("%s\n", '╮');
-          // ╭────────╮    
-          // │        │  
-          // │        │  
-          // ╰───●────╯    
-                     
+  printf("\e[A");
 
   drawEmptyMap(width, height);
 
   int snake[length];
-  int head = 0;
-  int tail = 0;
-  for (int i = 0; i < length; i++) {
-    snake[i] = py * width + px;
-  }
+  memset(snake, py * width + px, sizeof snake);
+  int head = 0, tail = 0;
 
   while (lastChar != 3) { // Escape when user presses ctrl+c
     lastChar = _getch();
@@ -81,8 +68,9 @@ int main() {
     else if (lastChar == 100 || lastChar == 224 + 77) px = wrap(px, width, 1); // D or Right arrow
     else if (lastChar == 119 || lastChar == 224 + 72) py = wrap(py, height, -1); // W or Up arrow
     else if (lastChar == 115 || lastChar == 224 + 80) py = wrap(py, height, 1); // S or Down arrow
+    else continue;
 
-    if (head - tail < 80 && head - tail >= 0) {
+    if (head - tail < 8 && head - tail >= 0) {
       add(snake, py * width + px, length, &head, &tail);
       size++;
     } else {
@@ -93,10 +81,6 @@ int main() {
     int x1 = snake[(head + (length - 1)) % length] - y1 * width;
     int y2 = snake[(head + (length - 2)) % length] / width;
     int x2 = snake[(head + (length - 2)) % length] - y2 * width;
-          // ╭────────╮    
-          // │        │  
-          // │        │  
-          // ╰───●────╯    
 
     // Move top, right print, left + 1, down
     // Render head
@@ -140,7 +124,28 @@ int main() {
 
     int pos = py * width + px;
     for (int j = 0; j < size - 1; j++) {
-      if (snake[(tail + j) % length] == pos) return 0;
+      // Reset game
+      if (snake[(tail + j) % length] == pos) {
+        printf("Game has ended with a score of: %d.\nPress any key to continue.\n", size);
+        size = 1;
+        py = 0;
+        px = 0;
+        head = 0;
+        tail = 0;
+        memset(snake, py * width + px, sizeof snake);
+        lastChar = _getch();
+
+        printf(
+          "\e[A                                            \n"
+          "\e[2A                                           \n"
+          "\e[%dA",
+          height + 1
+        );
+        drawEmptyMap(width, height);
+        break;
+      }
     }
   }
+
+  printf("Exited game with a score of: %d", size);
 }
