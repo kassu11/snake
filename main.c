@@ -82,7 +82,7 @@ int main() {
     else if (lastChar == 119 || lastChar == 224 + 72) py = wrap(py, height, -1); // W or Up arrow
     else if (lastChar == 115 || lastChar == 224 + 80) py = wrap(py, height, 1); // S or Down arrow
 
-    if (head - tail < 22 && head - tail >= 0) {
+    if (head - tail < 80 && head - tail >= 0) {
       add(snake, py * width + px, length, &head, &tail);
       size++;
     } else {
@@ -137,5 +137,10 @@ int main() {
     int tx = snake[(tail + (length - 1)) % length] - ty * width;
     // Remove tail
     printf("\e[%dA\e[%dC \e[%dD\e[%dB", height - ty - 1, tx + 1, tx + 2, height - ty - 1);
+
+    int pos = py * width + px;
+    for (int j = 0; j < size - 1; j++) {
+      if (snake[(tail + j) % length] == pos) return 0;
+    }
   }
 }
