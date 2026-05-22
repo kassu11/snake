@@ -58,6 +58,7 @@ int main() {
   int maxScore = (width - 2) * (height - 2);
   int length = width * height;
   int size = 1;
+  enum Direction dir = LEFT;
 
   srand(time(NULL));
   system("chcp 65001");
@@ -72,15 +73,29 @@ int main() {
   int head = 0, tail = 0;
 
   while (lastChar != 3) { // Escape when user presses ctrl+c
-    lastChar = _getch();
+  delay(200);
+    int prevMove = lastChar;
+    if (_kbhit()) {
+      lastChar = _getch();
+    }
     // Arrow key was used
     if (lastChar == 224) lastChar += getch_noblock();
 
-    if (lastChar == 97 || lastChar == 224 + 75) px = wrap(px, width, -1); // A or Left arrow
-    else if (lastChar == 100 || lastChar == 224 + 77) px = wrap(px, width, 1); // D or Right arrow
-    else if (lastChar == 119 || lastChar == 224 + 72) py = wrap(py, height, -1); // W or Up arrow
-    else if (lastChar == 115 || lastChar == 224 + 80) py = wrap(py, height, 1); // S or Down arrow
-    else continue;
+    enum Direction prevDir = dir;
+    if (lastChar == 97 || lastChar == 224 + 75) dir = LEFT; // A or Left arrow
+    else if (lastChar == 100 || lastChar == 224 + 77) dir = RIGHT; // D or Right arrow
+    else if (lastChar == 119 || lastChar == 224 + 72) dir = UP; // W or Up arrow
+    else if (lastChar == 115 || lastChar == 224 + 80) dir = DOWN; // S or Down arrow
+
+    // Direction change is invalid, revert
+    if (prevDir == LEFT && dir == RIGHT || prevDir == RIGHT && dir == LEFT || prevDir == UP && dir == DOWN || prevDir == DOWN && dir == UP) {
+      dir = prevDir;
+    }
+
+    if (dir == LEFT) px = wrap(px, width, -1);
+    else if (dir == RIGHT) px = wrap(px, width, 1);
+    else if (dir == UP) py = wrap(py, height, -1);
+    else if (dir == DOWN) py = wrap(py, height, 1);
 
     if (px == ax && py == ay) {
       add(snake, py * width + px, length, &head, &tail);
